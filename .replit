@@ -15,5 +15,20 @@ build = ["npm", "run", "build"]
 publicDir = "dist"
 
 [[ports]]
+localPort = 3000
+externalPort = 3000
+
+[[ports]]
 localPort = 5173
 externalPort = 80
+
+[workflows]
+runButton = "Dev"
+
+[[workflows.workflow]]
+name = "Dev"
+author = 5517120
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "npm run dev"

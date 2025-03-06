@@ -1,4 +1,3 @@
-
 {
   "name": "google-login-app",
   "version": "1.0.0",
@@ -17,5 +16,9 @@
   "license": "ISC",
   "devDependencies": {
     "concurrently": "^8.2.0"
+  },
+  "dependencies": {
+    "@vitejs/plugin-react": "^4.3.4",
+    "vite": "^6.2.0"
   }
 }
