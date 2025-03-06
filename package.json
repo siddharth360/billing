@@ -5,10 +5,10 @@
   "main": "index.js",
   "scripts": {
     "install:all": "npm install && cd frontend && npm install && cd ../backend && npm install",
-    "dev:frontend": "cd frontend && npm run dev",
+    "dev:frontend": "vite",
     "dev:backend": "cd backend && npm run dev",
     "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
-    "build:frontend": "cd frontend && npm run build",
+    "build": "vite build",
     "start:backend": "cd backend && npm start"
   },
   "keywords": [],
