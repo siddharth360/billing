@@ -1,17 +1,77 @@
-## Running React on Replit
 
-[React](https://reactjs.org/) is a popular JavaScript library for building user interfaces.
+# Google Login with Groups Application
 
-[Vite](https://vitejs.dev/) is a blazing fast frontend build tool that includes features like Hot Module Reloading (HMR), optimized builds, and TypeScript support out of the box.
+This application demonstrates implementation of Google OAuth login with Google Groups integration to manage user access.
 
-Using the two in conjunction is one of the fastest ways to build a web app.
+## Project Structure
 
-### Getting Started
-- Hit run
-- Edit [App.jsx](#src/App.jsx) and watch it live update!
+The project is split into two main parts:
 
-By default, Replit runs the `dev` script, but you can configure it by changing the `run` field in the [configuration file](#.replit). Here are the vite docs for [serving production websites](https://vitejs.dev/guide/build.html)
+- `frontend/`: React application with Google login integration
+- `backend/`: Express.js API handling authentication and authorization
 
-### Typescript
+## Setup
 
-Just rename any file from `.jsx` to `.tsx`. You can also try our [TypeScript Template](https://replit.com/@replit/React-TypeScript)
+### Prerequisites
+
+- Node.js (v14 or higher)
+- A Google Cloud Platform account
+- Google OAuth 2.0 Client ID
+- (Optional) Google Workspace with Admin privileges for Groups integration
+
+### Google Setup
+
+1. Create a project in Google Cloud Platform
+2. Enable the Google+ API and Admin SDK API
+3. Configure the OAuth consent screen
+4. Create OAuth 2.0 Client credentials
+5. For groups integration, set up a service account with domain-wide delegation
+
+### Installation
+
+Install dependencies for both frontend and backend:
+
+```bash
+npm run install:all
+```
+
+### Configuration
+
+1. Copy the example env file:
+```bash
+cp backend/.env.example backend/.env
+```
+
+2. Update the `.env` file with your Google credentials
+
+3. Update the Google Client ID in `frontend/src/index.jsx`
+
+### Development
+
+Run both frontend and backend in development mode:
+
+```bash
+npm run dev
+```
+
+Or run them separately:
+
+```bash
+npm run dev:frontend
+npm run dev:backend
+```
+
+### Building for Production
+
+```bash
+npm run build:frontend
+```
+
+The frontend build will be created in `frontend/dist/`
+
+## Features
+
+- Google OAuth login
+- Session management with cookies
+- Google Groups integration for access control
+- Protected routes based on authentication
