@@ -1,4 +1,3 @@
-
 import express from 'express';
 import { OAuth2Client } from 'google-auth-library';
 import axios from 'axios';
@@ -10,34 +9,42 @@ const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 router.post('/google', async (req, res) => {
   try {
     const { token } = req.body;
-    
+
     // Get user info from Google
     const userInfoResponse = await axios.get('https://www.googleapis.com/oauth2/v3/userinfo', {
       headers: { Authorization: `Bearer ${token}` }
     });
-    
+
     const userInfo = userInfoResponse.data;
-    
+
     // Get user groups from Google Admin
-    // Note: This requires additional setup with Google Admin SDK
-    // and proper OAuth2 scopes for directory access
     let userGroups = [];
     try {
-      if (process.env.GOOGLE_SERVICE_ACCOUNT_KEY) {
-        // This is a simplified example. In reality, you'd use a service account
-        // with domain-wide delegation to access the Admin SDK
-        // See: https://developers.google.com/admin-sdk/directory/v1/guides/delegation
-        
-        // Fetch user groups - this is just placeholder code
-        // const groupsResponse = await googleAdminClient.groups.list({
-        //   userKey: userInfo.email
-        // });
-        // userGroups = groupsResponse.data.groups || [];
+      // Using the access token to fetch groups
+      // This requires the correct OAuth scope (https://www.googleapis.com/auth/admin.directory.group.readonly)
+      const groupsResponse = await axios.get(
+        `https://admin.googleapis.com/admin/directory/v1/groups?userKey=${userInfo.email}`,
+        {
+          headers: { 
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      if (groupsResponse.data && groupsResponse.data.groups) {
+        userGroups = groupsResponse.data.groups.map(group => ({
+          id: group.id,
+          name: group.name,
+          email: group.email
+        }));
       }
     } catch (error) {
       console.error('Error fetching user groups:', error);
+      // If there's an error, we'll continue without groups
+      // This could happen if user doesn't have permission or the token doesn't have required scopes
     }
-    
+
     // Create user session
     const user = {
       id: userInfo.sub,
@@ -46,9 +53,9 @@ router.post('/google', async (req, res) => {
       picture: userInfo.picture,
       groups: userGroups.map(group => group.name)
     };
-    
+
     req.session.user = user;
-    
+
     return res.status(200).json(user);
   } catch (error) {
     console.error('Authentication error:', error);
