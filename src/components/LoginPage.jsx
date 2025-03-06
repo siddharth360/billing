@@ -7,7 +7,7 @@ const LoginPage = ({ onLogin }) => {
     onSuccess: async (response) => {
       try {
         // Send the token to our backend
-        const backendResponse = await fetch('/api/auth/google', {
+        const backendResponse = await fetch('https://d6ed0173-979f-401f-85f4-826a574c4619-00-2btepdzlwfgjs.pike.replit.dev/api/auth/google', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
