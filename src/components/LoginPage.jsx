@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { GoogleLogin } from '@react-oauth/google';
 import '../App.css';
@@ -9,14 +8,14 @@ const LoginPage = ({ onLogin }) => {
       <div className="login-box">
         <h1>Welcome</h1>
         <p>Please sign in with your Google account</p>
-        
+
         <div className="google-login-button">
           <GoogleLogin
             onSuccess={async (credentialResponse) => {
               try {
                 // Get the ID token from the response
                 const { credential } = credentialResponse;
-                
+
                 // Send the token to our backend
                 const backendResponse = await fetch('/api/auth/google', {
                   method: 'POST',
@@ -26,7 +25,7 @@ const LoginPage = ({ onLogin }) => {
                   body: JSON.stringify({ token: credential }),
                   credentials: 'include'
                 });
-                
+
                 if (backendResponse.ok) {
                   const data = await backendResponse.json();
                   onLogin(data.user);
