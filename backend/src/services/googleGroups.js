@@ -1,14 +1,10 @@
 
 import { google } from 'googleapis';
-import dotenv from 'dotenv';
 
-dotenv.config();
-
-// Initialize the admin SDK
 const auth = new google.auth.JWT(
   process.env.SERVICE_ACCOUNT_EMAIL,
   null,
-  process.env.SERVICE_ACCOUNT_PRIVATE_KEY.replace(/\\n/g, '\n'),
+  process.env.SERVICE_ACCOUNT_PRIVATE_KEY?.replace(/\\n/g, '\n'),
   ['https://www.googleapis.com/auth/admin.directory.group.readonly'],
   process.env.ADMIN_EMAIL // Admin email for domain-wide delegation
 );
@@ -19,8 +15,14 @@ const auth = new google.auth.JWT(
  * @param {Array<string>} targetGroups - Array of group email addresses to check membership against
  * @returns {Promise<Array<string>>} - Array of groups the user is a member of
  */
-export async function getUserGroups(userEmail) {
+async function getUserGroups(userEmail) {
   try {
+    // If service account credentials are not set, return empty array
+    if (!process.env.SERVICE_ACCOUNT_EMAIL || !process.env.SERVICE_ACCOUNT_PRIVATE_KEY) {
+      console.warn('Google Groups service account credentials not configured');
+      return [];
+    }
+
     // Create the directory API client
     const directory = google.admin({
       version: 'directory_v1',
@@ -50,8 +52,14 @@ export async function getUserGroups(userEmail) {
  * @param {Array<string>} targetGroups - Array of group email addresses to check membership against
  * @returns {Promise<boolean>} - Whether the user is a member of any target group
  */
-export async function isUserInGroups(userEmail, targetGroups) {
+async function isUserInGroups(userEmail, targetGroups) {
   try {
+    // If no target groups or Google Groups integration is not configured, always allow access
+    if (!targetGroups || targetGroups.length === 0 || 
+        !process.env.SERVICE_ACCOUNT_EMAIL || !process.env.SERVICE_ACCOUNT_PRIVATE_KEY) {
+      return true;
+    }
+    
     const userGroups = await getUserGroups(userEmail);
     
     // Check if any of the user's groups match the target groups

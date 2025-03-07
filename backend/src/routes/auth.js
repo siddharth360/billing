@@ -13,7 +13,17 @@ const ALLOWED_GROUPS = process.env.ALLOWED_GOOGLE_GROUPS
 // Login with Google
 router.post('/google', async (req, res) => {
   try {
+    console.log('Received authentication request');
     const { token } = req.body;
+    
+    if (!token) {
+      console.error('No token provided');
+      return res.status(400).json({ 
+        success: false, 
+        message: 'No token provided' 
+      });
+    }
+    
     const ticket = await client.verifyIdToken({
       idToken: token,
       audience: process.env.GOOGLE_CLIENT_ID,
@@ -22,21 +32,36 @@ router.post('/google', async (req, res) => {
     const payload = ticket.getPayload();
     const userEmail = payload.email;
     
+    console.log(`User authenticated: ${userEmail}`);
+    
     // If we have allowed groups configured, check membership
     let userGroups = [];
     let hasAccess = true;
     
-    if (ALLOWED_GROUPS.length > 0) {
-      // Check if user is in any of the allowed groups
-      userGroups = await googleGroups.getUserGroups(userEmail);
-      hasAccess = await googleGroups.isUserInGroups(userEmail, ALLOWED_GROUPS);
-      
-      if (!hasAccess) {
-        return res.status(403).json({
-          success: false,
-          message: 'You do not have permission to access this application'
-        });
+    try {
+      if (ALLOWED_GROUPS.length > 0) {
+        console.log(`Checking group membership for ${userEmail} against groups: ${ALLOWED_GROUPS.join(', ')}`);
+        
+        // Check if user is in any of the allowed groups
+        if (process.env.SERVICE_ACCOUNT_EMAIL && process.env.SERVICE_ACCOUNT_PRIVATE_KEY) {
+          userGroups = await googleGroups.getUserGroups(userEmail);
+          hasAccess = await googleGroups.isUserInGroups(userEmail, ALLOWED_GROUPS);
+        } else {
+          console.log('Google Groups service account not configured - skipping groups check');
+        }
+        
+        if (!hasAccess) {
+          console.log(`Access denied for ${userEmail} - not in allowed groups`);
+          return res.status(403).json({
+            success: false,
+            message: 'You do not have permission to access this application'
+          });
+        }
       }
+    } catch (groupError) {
+      console.error('Error during group check:', groupError);
+      // Continue with authentication even if group check fails
+      console.log('Continuing authentication despite group check error');
     }
 
     // Store user in session
@@ -48,6 +73,7 @@ router.post('/google', async (req, res) => {
       groups: userGroups
     };
 
+    console.log(`User session created for ${userEmail}`);
     res.json({ 
       success: true, 
       user: req.session.user 
