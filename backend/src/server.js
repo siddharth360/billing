@@ -1,8 +1,8 @@
 
 import express from 'express';
+import session from 'express-session';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
-import session from 'express-session';
 import dotenv from 'dotenv';
 import authRoutes from './routes/auth.js';
 
@@ -16,13 +16,13 @@ const PORT = process.env.PORT || 8080;
 app.use(express.json());
 app.use(cookieParser());
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://0.0.0.0:3000',
+  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
   credentials: true
 }));
 
-// Session configuration
+// Session setup
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'your-secret-key',
+  secret: process.env.SESSION_SECRET || 'your-session-secret',
   resave: false,
   saveUninitialized: false,
   cookie: {
@@ -35,14 +35,12 @@ app.use(session({
 // Routes
 app.use('/api/auth', authRoutes);
 
-// Health check endpoint
-app.get('/api/health', (req, res) => {
+// Health check route
+app.get('/health', (req, res) => {
   res.status(200).json({ status: 'ok' });
 });
 
-// Start the server
+// Start server
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Backend server running on port ${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });
-
-export default app;

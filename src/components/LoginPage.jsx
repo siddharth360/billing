@@ -1,48 +1,48 @@
 
-import { useGoogleLogin } from '@react-oauth/google';
+import React from 'react';
+import { GoogleLogin } from '@react-oauth/google';
 import '../App.css';
 
 const LoginPage = ({ onLogin }) => {
-  const login = useGoogleLogin({
-    onSuccess: async (response) => {
-      try {
-        // Send the token to our backend
-        const backendResponse = await fetch('https://d6ed0173-979f-401f-85f4-826a574c4619-00-2btepdzlwfgjs.pike.replit.dev/api/auth/google', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          credentials: 'include',
-          body: JSON.stringify({ token: response.access_token }),
-        });
-
-        if (backendResponse.ok) {
-          const userData = await backendResponse.json();
-          onLogin(userData);
-        } else {
-          console.error('Backend authentication failed');
-        }
-      } catch (error) {
-        console.error('Login failed:', error);
-      }
-    },
-    onError: () => {
-      console.error('Google Login Failed');
-    },
-    scope: 'email profile https://www.googleapis.com/auth/admin.directory.group.readonly',
-  });
-
   return (
     <div className="login-container">
-      <div className="login-card">
-        <h1 className="login-title">Welcome</h1>
-        <p>Please sign in with your Google account to access the application.</p>
-        <button 
-          onClick={() => login()} 
-          className="google-login-button"
-        >
-          Sign in with Google
-        </button>
+      <div className="login-box">
+        <h1>Welcome</h1>
+        <p>Please sign in with your Google account</p>
+        
+        <div className="google-login-button">
+          <GoogleLogin
+            onSuccess={async (credentialResponse) => {
+              try {
+                // Get the ID token from the response
+                const { credential } = credentialResponse;
+                
+                // Send the token to our backend
+                const backendResponse = await fetch('/api/auth/google', {
+                  method: 'POST',
+                  headers: {
+                    'Content-Type': 'application/json',
+                  },
+                  body: JSON.stringify({ token: credential }),
+                  credentials: 'include'
+                });
+                
+                if (backendResponse.ok) {
+                  const data = await backendResponse.json();
+                  onLogin(data.user);
+                } else {
+                  console.error('Backend authentication failed');
+                }
+              } catch (error) {
+                console.error('Authentication error:', error);
+              }
+            }}
+            onError={() => {
+              console.error('Login Failed');
+            }}
+            useOneTap
+          />
+        </div>
       </div>
     </div>
   );

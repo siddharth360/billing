@@ -7,7 +7,7 @@
     "install:all": "npm install && cd frontend && npm install && cd ../backend && npm install",
     "dev:frontend": "vite",
     "dev:backend": "cd backend && npm run dev",
-    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev": "npm run dev:backend & npm run dev:frontend",
     "build": "vite build",
     "start:backend": "cd backend && npm start"
   },
