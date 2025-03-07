@@ -1,8 +1,14 @@
 import express from 'express';
 import { OAuth2Client } from 'google-auth-library';
+import googleGroups from '../services/googleGroups.js';
 
 const router = express.Router();
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
+// Allowed Google Groups (can be moved to environment variables)
+const ALLOWED_GROUPS = process.env.ALLOWED_GOOGLE_GROUPS 
+  ? process.env.ALLOWED_GOOGLE_GROUPS.split(',') 
+  : [];
 
 // Login with Google
 router.post('/google', async (req, res) => {
@@ -14,14 +20,32 @@ router.post('/google', async (req, res) => {
     });
 
     const payload = ticket.getPayload();
-
+    const userEmail = payload.email;
+    
+    // If we have allowed groups configured, check membership
+    let userGroups = [];
+    let hasAccess = true;
+    
+    if (ALLOWED_GROUPS.length > 0) {
+      // Check if user is in any of the allowed groups
+      userGroups = await googleGroups.getUserGroups(userEmail);
+      hasAccess = await googleGroups.isUserInGroups(userEmail, ALLOWED_GROUPS);
+      
+      if (!hasAccess) {
+        return res.status(403).json({
+          success: false,
+          message: 'You do not have permission to access this application'
+        });
+      }
+    }
 
     // Store user in session
     req.session.user = {
       id: payload.sub,
-      email: payload.email,
+      email: userEmail,
       name: payload.name,
-      picture: payload.picture
+      picture: payload.picture,
+      groups: userGroups
     };
 
     res.json({ 
